@@ -153,7 +153,7 @@ class Stock(object):
 class Facet(object):
     """
     A facet is used to split a stock or flow into sub-queries.
-    
+
      - The name is used to refer to the facet.
      - The field lookup is the same as the left side of a kwarg in a filter function.
      - Values can either be a list or a ValuesQuerySet with flat=True. If it is a
@@ -239,8 +239,15 @@ class Flow(object):
     this flow. It receives the flowed_obj, source and sink. An example use
     would be to send an email each time an activating flow occurs.
     """
-    def __init__(self, slug, name, flow_event_model, sources=[], sinks=[],
+    def __init__(self, slug, name, flow_event_model, sources=None, sinks=None,
                  event_callables=[], description=""):
+
+        if not sources:
+            sources = []
+
+        if not sinks:
+            sinks = []
+
         self.slug = slug
         self.name = name
         self.flow_event_model = flow_event_model
@@ -251,7 +258,7 @@ class Flow(object):
         self.queryset = flow_event_model.objects.filter(flow=self.slug)
         # If a flow connects stocks they must track the same class
         stock_cls = None
-        stock_list = sources + sinks
+        stock_list = list(sources) + list(sinks)
         for s in stock_list: # Handles None stocks an no stocks
             if s:
                 if isinstance(s, Stock):
@@ -274,7 +281,7 @@ class Flow(object):
 
     @property
     def subject_model(self):
-        return self.flow_event_model.subject.field.related.parent_model
+        return self.flow_event_model.subject.field.remote_field.model
 
     @property
     def definition(self):
@@ -333,7 +340,7 @@ class StockFacetRecord(models.Model):
     """
     A record of the count of a facet for a given stock at a point in time
     """
-    stock_record = models.ForeignKey(StockRecord, db_index=True)
+    stock_record = models.ForeignKey(StockRecord, db_index=True, on_delete=models.CASCADE)
     facet = models.SlugField()
     value = models.CharField(max_length=200, db_index=True)
     count = models.PositiveIntegerField()
@@ -345,7 +352,7 @@ class StockRecordAdmin(admin.ModelAdmin):
 
 class FlowEventModel(models.Model):
     """
-    An abstract base class for the timestamped event of an object moving from 
+    An abstract base class for the timestamped event of an object moving from
     one stock to another
 
     Flow events combine to create a  flow variable that is measured over an

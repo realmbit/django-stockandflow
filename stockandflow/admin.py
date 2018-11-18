@@ -7,6 +7,7 @@ The functions are called during the Stock and Flow initialization to set up corr
 models.
 """
 from types import MethodType
+from functools import reduce
 
 from django.contrib import admin
 
@@ -68,7 +69,7 @@ class StockAndFlowAdminSite(admin.AdminSite):
         Create a proxy of a model that can be used to represents a stock or a flow in an
         admin site.
 
-        Django requires that either the module or an app label be set, so adding the new 
+        Django requires that either the module or an app label be set, so adding the new
         model to an existing module is necessary.
         """
 
@@ -76,7 +77,7 @@ class StockAndFlowAdminSite(admin.AdminSite):
         name = represents.name.title().replace(" ","") + class_name
         class Meta:
             proxy = True
-            verbose_name_plural = "%02d. %s: %s" % (self.next_reg_sequence(), class_name, 
+            verbose_name_plural = "%02d. %s: %s" % (self.next_reg_sequence(), class_name,
                                                   represents.name.capitalize())
         attrs = {
             '__module__': module,
@@ -90,7 +91,7 @@ class StockAndFlowAdminSite(admin.AdminSite):
         """
         Dynamically create an admin model class that can be registered in the
         admin site to represent a stock or flow.
-        
+
          - The queryset extracts the records that are included in the stock or
            flow.
          - The attrs dict become the properties of the class.
@@ -102,11 +103,11 @@ class StockAndFlowAdminSite(admin.AdminSite):
         name = represents.name.title().replace(" ","") + class_name + 'Admin'
         inherits = tuple([admin.ModelAdmin] + action_mixins)
         ret_class = type(name, inherits, attrs)
-        ret_class.queryset = MethodType(lambda self, request: queryset, None, ret_class)
+        ret_class.queryset = MethodType(lambda self, request: queryset, ret_class)
         # Block add and delete permissions because stocks and flows are read only
-        ret_class.has_add_permission = MethodType(lambda self, request: False, None, ret_class)
-        ret_class.has_delete_permission = MethodType(lambda self, request, obj=None: 
-                                                     False, None, ret_class)
+        ret_class.has_add_permission = MethodType(lambda self, request: False, ret_class)
+        ret_class.has_delete_permission = MethodType(lambda self, request, obj=None:
+                                                     False, ret_class)
 
         # Collect all the mixed in actions
         all_actions = []

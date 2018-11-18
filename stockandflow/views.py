@@ -2,8 +2,7 @@ from operator import attrgetter
 from collections import OrderedDict
 
 from django.shortcuts import redirect
-from django.views.generic.list_detail import object_detail
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import loader
 from django import forms
 from django.http import QueryDict
@@ -79,7 +78,7 @@ class FacetSelection(object):
                     query_str = self.update_query_dict(request.GET.copy()).urlencode()
                 except ValueError:
                     query_str = None
-                if query_str: 
+                if query_str:
                     url += "?%s" % query_str
                 return redirect(url)
         else:
@@ -335,4 +334,3 @@ try:
 
 except ImportError:
     pass
-

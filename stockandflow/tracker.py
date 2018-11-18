@@ -4,7 +4,7 @@ from django.db import models
 class ModelTracker(object):
     """
     Manage the stock counting and flow event generation for a given model.
-    
+
     It generates flow events by monitoring for changes to the fields_to_track
     list, runs the old and new field values through the states_to_stocks_func
     function to figure out the source and sink stocks. Then it tries to checks
@@ -34,7 +34,8 @@ class ModelTracker(object):
         # cache the flow lookup table
         self.flow_lookup = {}
         # property names to store initial state-defining field values
-        self.tracker_attnames = map(lambda f: '_modeltracker_%s' % f, fields_to_track)
+        #TODO_MIGRATION
+        self.tracker_attnames = list(map(lambda f: '_modeltracker_%s' % f, fields_to_track))
         # Establish signals to get change notifications
         models.signals.post_init.connect(self._save_initial, sender=self.model)
         models.signals.post_save.connect(self._check_for_change, sender=self.model)
@@ -95,4 +96,3 @@ class ModelTracker(object):
             self.pre_record_callable()
         for stock in self.stocks:
             stock.save_count()
-
