@@ -167,7 +167,7 @@ class Facet(object):
 
     @property
     def values(self):
-        if isinstance(self._given_values, models.query.ValuesQuerySet):
+        if isinstance(self._given_values, models.query.QuerySet):
             return self._given_values.iterator()
         return self._given_values
 
