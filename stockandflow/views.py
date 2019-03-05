@@ -210,7 +210,7 @@ class StockSequencer(object):
         query_dict = self.stock_selection.update_query_dict(query_dict)
         if self.facet_selection:
             query_dict = self.facet_selection.update_query_dict(query_dict)
-        query_dict["index"] = self.index
+        query_dict["index"] = str(self.index)
         return query_dict
 
     def query_str(self):
