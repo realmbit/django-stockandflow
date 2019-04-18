@@ -27,13 +27,25 @@ class StockAndFlowAdminSite(admin.AdminSite):
     site so that it does not clutter up the normal admin with dynamically
     created stock and flow entries.
     """
-    def __init__(self, *args):
+
+    def __init__(self, pre_register_list=None, *args, **kwargs):
         """
         Remove the delete_selected action because these are proxy models.
         The action can be added back in for a given model stock or flow.
         """
-        super(StockAndFlowAdminSite, self). __init__(*args)
+
+        self.pre_register_list = pre_register_list
+
+        super(). __init__(*args, **kwargs)
         self.disable_action('delete_selected')
+
+    def get_urls(self):
+        for module in self.pre_register_list or []:
+            __import__(module)
+
+        urls = super().get_urls()
+
+        return urls
 
     registration_sequence = 0
     def next_reg_sequence(self):
@@ -44,10 +56,19 @@ class StockAndFlowAdminSite(admin.AdminSite):
         return self.registration_sequence
 
     def register_stock(self, stock, admin_attributes={}, action_mixins=[]):
-        proxy_model = self.create_proxy_model(stock, stock.queryset.model,
-                                                      stock.queryset.model.__module__)
-        model_admin = self.create_model_admin(stock, stock.queryset, admin_attributes,
-                                                      action_mixins)
+        proxy_model = self.create_proxy_model(
+            stock,
+            stock.queryset.model,
+            stock.queryset.model.__module__
+        )
+
+        model_admin = self.create_model_admin(
+            stock,
+            stock.queryset,
+            admin_attributes,
+            action_mixins
+        )
+
         self.register(proxy_model, model_admin)
 
     def register_flow(self, flow, admin_attributes={}, action_mixins=[]):
@@ -61,6 +82,7 @@ class StockAndFlowAdminSite(admin.AdminSite):
                                               flow.subject_model.__module__)
         model_admin = self.create_model_admin(flow, flow.queryset, default_attrs,
                                               action_mixins)
+
         self.register(proxy_model, model_admin)
 
 
