@@ -43,9 +43,7 @@ class StockAndFlowAdminSite(admin.AdminSite):
         for module in self.pre_register_list or []:
             __import__(module)
 
-        urls = super().get_urls()
-
-        return urls
+        return super().get_urls()
 
     registration_sequence = 0
     def next_reg_sequence(self):
@@ -97,17 +95,17 @@ class StockAndFlowAdminSite(admin.AdminSite):
 
         class_name = represents.__class__.__name__
         name = represents.name.title().replace(" ","") + class_name
+        
         class Meta:
             proxy = True
             verbose_name_plural = "%02d. %s: %s" % (self.next_reg_sequence(), class_name,
                                                   represents.name.capitalize())
         attrs = {
             '__module__': module,
-            '__str__': represents.name,
+            '__str__': lambda x: represents.name,
             'Meta': Meta,
         }
-        rv = type(name, (base_model,), attrs)
-        return rv
+        return type(name, (base_model,), attrs)
 
     def create_model_admin(self, represents, queryset, attrs={}, action_mixins=[]):
         """
