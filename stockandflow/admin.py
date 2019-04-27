@@ -95,11 +95,15 @@ class StockAndFlowAdminSite(admin.AdminSite):
 
         class_name = represents.__class__.__name__
         name = represents.name.title().replace(" ","") + class_name
-        
+
         class Meta:
             proxy = True
-            verbose_name_plural = "%02d. %s: %s" % (self.next_reg_sequence(), class_name,
-                                                  represents.name.capitalize())
+            verbose_name_plural = "%02d. %s: %s" % (
+                self.next_reg_sequence(),
+                class_name,
+                represents.name.capitalize()
+            )
+
         attrs = {
             '__module__': module,
             '__str__': lambda x: represents.name,
@@ -123,7 +127,7 @@ class StockAndFlowAdminSite(admin.AdminSite):
         name = represents.name.title().replace(" ","") + class_name + 'Admin'
         inherits = tuple([admin.ModelAdmin] + action_mixins)
         ret_class = type(name, inherits, attrs)
-        ret_class.queryset = MethodType(lambda self, request: queryset, ret_class)
+        ret_class.get_queryset = MethodType(lambda self, request: queryset, ret_class)
         # Block add and delete permissions because stocks and flows are read only
         ret_class.has_add_permission = MethodType(lambda self, request: False, ret_class)
         ret_class.has_delete_permission = MethodType(lambda self, request, obj=None:
