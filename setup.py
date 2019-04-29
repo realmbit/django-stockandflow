@@ -1,13 +1,13 @@
 from setuptools import setup
 
 
-long_description = (open('README.rst').read() + 
+long_description = (open('README.rst').read() +
                     open('CHANGES.rst').read() +
                     open('TODO.rst').read())
 
 setup(
     name='django-stockandflow',
-    version='0.0.5',
+    version='0.0.6',
     description='Django stock and flow tracking for business intelligence metrics',
     long_description = long_description,
     author='Jesse Heitler',
@@ -25,4 +25,3 @@ setup(
     ],
     zip_safe=False,
 )
-
