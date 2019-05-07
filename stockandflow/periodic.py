@@ -68,12 +68,15 @@ class PeriodicSchedule(models.Model):
         Run the entries for a given frequency.
         """
         self.log("Running %s entries." % frequency)
+
         call_count = 0
+
         for to_call, args, kwargs in self.entries.get(frequency, []):
-            self.log("Running '%s'." % to_call.func_name)
+            self.log("Running '%s'." % to_call.__name__)
             message = to_call(*args, **kwargs)
             self.log(message)
             call_count += 1
+            
         return call_count
 
 
