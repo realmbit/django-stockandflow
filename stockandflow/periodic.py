@@ -47,7 +47,7 @@ class PeriodicSchedule(models.Model):
         """
         A very basic logging function. Simply logs to stdout.
         """
-        print >> sys.stdout, message
+        sys.stdout.write(message)
 
     def register(self, frequency, to_call, args=(), kwargs={}):
         """
@@ -96,7 +96,7 @@ class PeriodicSchedule(models.Model):
         now = datetime.now()
         now_seconds = int(time.mktime(now.utctimetuple()))
         self.log("Starting to run at %s." % now)
-        period_mins_to_freq = dict((period, freq) for freq, period in FREQUENCIES.iteritems())
+        period_mins_to_freq = dict((period, freq) for freq, period in FREQUENCIES.items())
         for period_mins in sorted(period_mins_to_freq.keys()):
             if period_mins == 0: continue # Skip the never frequency
             freq = period_mins_to_freq[period_mins]
@@ -140,7 +140,7 @@ class PeriodicSchedule(models.Model):
         Issue a warning about overlapping runs.
         This is a serperate function for easier testing.
         """
-        print >> sys.stderr, "Overlapping run for '%s' frequency. There may have been an error, a slow process at %s" % (freq, timestamp)
+        sys.stderr.write("Overlapping run for '%s' frequency. There may have been an error, a slow process at %s" % (freq, timestamp))
 
 
 
