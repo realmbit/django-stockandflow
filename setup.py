@@ -7,7 +7,7 @@ long_description = (open('README.rst').read() +
 
 setup(
     name='django-stockandflow',
-    version='0.0.7',
+    version='0.0.8',
     description='Django stock and flow tracking for business intelligence metrics',
     long_description = long_description,
     author='Jesse Heitler',
