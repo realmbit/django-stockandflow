@@ -3,6 +3,7 @@ import time
 import calendar
 from datetime import datetime
 
+from django.utils import timezone
 from django.db import models
 from django.contrib import admin
 
@@ -100,7 +101,7 @@ class PeriodicSchedule(models.Model):
         it is safe to run this function repeatedly and it will still only run
         the entries for each frequency once per period.
         """
-        now = datetime.now()
+        now = timezone.now()
         now_seconds = int(time.mktime(now.utctimetuple()))
         self.log("Starting to run at %s." % now)
         period_mins_to_freq = dict((period, freq) for freq, period in FREQUENCIES.items())
@@ -142,11 +143,12 @@ class PeriodicSchedule(models.Model):
             if now_period > last_period:
                 # Set that this is running in the database
                 to_run.last_run_timestamp = now
-                to_run.call_count = None #Mark to catch an overlap
                 to_run.save()
+                # to_run.call_count = None #Mark to catch an overlap
 
                 call_count = self.run_entries_for_frequency(freq)
                 just_ran = PeriodicSchedule.objects.get(frequency=freq)
+
                 if just_ran.last_run_timestamp == now:
                     just_ran.call_count = call_count
                     just_ran.save()
