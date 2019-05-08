@@ -141,7 +141,11 @@ class Stock(object):
         """
         Save a record of the current count for the stock and any facets.
         """
-        sr = StockRecord.objects.create(stock=self.slug, count=self.queryset.count())
+        sr = StockRecord.objects.create(
+            stock=self.slug,
+            count=self.queryset.count()
+        )
+
         for facet_tuple in self.facet_tuples:
             facet, field_prefix = facet_tuple
             for value, q in facet.to_count(field_prefix):

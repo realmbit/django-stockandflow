@@ -39,15 +39,17 @@ class PeriodicSchedule(models.Model):
 
     frequency = models.SlugField()
     last_run_timestamp = models.DateTimeField(null=True)
-    call_count = models.IntegerField(null=True, default=0)
+    call_count = models.IntegerField(default=0)
 
     entries = {}
 
     def log(self, message):
+        if not message:
+            return
         """
         A very basic logging function. Simply logs to stdout.
         """
-        sys.stdout.write(message)
+        print(message)
 
     def register(self, frequency, to_call, args=(), kwargs={}):
         """
@@ -56,8 +58,11 @@ class PeriodicSchedule(models.Model):
         """
         if not FREQUENCIES[frequency]:
             raise ValueError("The frequency is invalid. it must be from the defined list.")
+
         if frequency == NEVER: return # Don't create an entry for something that never happens
+
         entry = (to_call, args, kwargs)
+
         try:
             self.entries[frequency].append(entry)
         except KeyError:
@@ -76,9 +81,8 @@ class PeriodicSchedule(models.Model):
             message = to_call(*args, **kwargs)
             self.log(message)
             call_count += 1
-            
-        return call_count
 
+        return call_count
 
     def reset_schedule(self):
         """
@@ -100,32 +104,47 @@ class PeriodicSchedule(models.Model):
         now_seconds = int(time.mktime(now.utctimetuple()))
         self.log("Starting to run at %s." % now)
         period_mins_to_freq = dict((period, freq) for freq, period in FREQUENCIES.items())
+
         for period_mins in sorted(period_mins_to_freq.keys()):
-            if period_mins == 0: continue # Skip the never frequency
+            if period_mins == 0:
+                continue # Skip the never frequency
+
             freq = period_mins_to_freq[period_mins]
-            to_run, created = PeriodicSchedule.objects.get_or_create(frequency=freq,
-                    defaults={"last_run_timestamp": datetime.now(), "call_count": 0})
+
+            to_run, created = PeriodicSchedule.objects.get_or_create(
+                frequency=freq,
+                defaults={
+                    "last_run_timestamp": datetime.now(),
+                    "call_count": 0
+                })
+
             if created:
                 self.log("Not running %s frequency because it was just created." % freq)
                 continue # Don't run just after creation because now may be mid-period
+
             last_run_timestamp = to_run.last_run_timestamp
             last_run_count = to_run.call_count
+
             if not last_run_timestamp:
                 self.log("Giving defualt timestamp for %s" % freq)
                 last_run_timestamp = datetime(1901,1,1)
                 last_run_count = 0
+
             #Check for if this is overlapping a previous run
             elif to_run.call_count is None:
                 self.log("Not running %s frequency because of an overlap." % freq)
                 self.overlap_warning(freq, now)
+
             last_seconds = int(time.mktime(last_run_timestamp.utctimetuple()))
             now_period = now_seconds / 60 / period_mins
             last_period = last_seconds / 60 / period_mins
+
             if now_period > last_period:
                 # Set that this is running in the database
                 to_run.last_run_timestamp = now
                 to_run.call_count = None #Mark to catch an overlap
                 to_run.save()
+
                 call_count = self.run_entries_for_frequency(freq)
                 just_ran = PeriodicSchedule.objects.get(frequency=freq)
                 if just_ran.last_run_timestamp == now:
@@ -143,7 +162,7 @@ class PeriodicSchedule(models.Model):
         Issue a warning about overlapping runs.
         This is a serperate function for easier testing.
         """
-        sys.stderr.write("Overlapping run for '%s' frequency. There may have been an error, a slow process at %s" % (freq, timestamp))
+        print("Overlapping run for '%s' frequency. There may have been an error, a slow process at %s" % (freq, timestamp))
 
 
 
